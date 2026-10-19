@@ -12,13 +12,11 @@ import me.rockquiet.joinprotection.scheduler.PlatformScheduler;
 import me.rockquiet.joinprotection.scheduler.folia.FoliaScheduler;
 import me.rockquiet.joinprotection.scheduler.paper.PaperScheduler;
 import me.rockquiet.joinprotection.scheduler.spigot.SpigotScheduler;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Arrays;
 
@@ -26,9 +24,9 @@ public class JoinProtection extends JavaPlugin {
 
     private ConfigManager configManager;
     private PlatformScheduler scheduler;
+    private ProtectionHandler protectionHandler;
 
     private boolean isPaper;
-    private BukkitAudiences audiences;
 
     private static boolean hasClass(String className) {
         try {
@@ -49,10 +47,9 @@ public class JoinProtection extends JavaPlugin {
         this.scheduler = createPlatformScheduler();
         this.configManager = new ConfigManager(this);
 
-        this.audiences = BukkitAudiences.create(this);
         MessageManager messageManager = new MessageManager(this);
 
-        ProtectionHandler protectionHandler = new ProtectionHandler(this, messageManager);
+        this.protectionHandler = new ProtectionHandler(this, messageManager);
 
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(protectionHandler, this);
@@ -101,9 +98,9 @@ public class JoinProtection extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (this.audiences != null) {
-            this.audiences.close();
-            this.audiences = null;
+        // remove bossbars / invisibility from everyone still protected
+        if (protectionHandler != null) {
+            protectionHandler.shutdown();
         }
     }
 
@@ -128,13 +125,6 @@ public class JoinProtection extends JavaPlugin {
 
     public PlatformScheduler getScheduler() {
         return scheduler;
-    }
-
-    public @NonNull BukkitAudiences adventure() {
-        if (this.audiences == null) {
-            throw new IllegalStateException("Tried to access Adventure when the plugin was disabled!");
-        }
-        return this.audiences;
     }
 
     public boolean isPaper() {

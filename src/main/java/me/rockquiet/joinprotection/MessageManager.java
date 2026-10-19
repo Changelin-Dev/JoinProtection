@@ -1,7 +1,6 @@
 package me.rockquiet.joinprotection;
 
 import me.rockquiet.joinprotection.configuration.ConfigManager;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -15,17 +14,20 @@ import java.util.Locale;
 public class MessageManager {
 
     private final ConfigManager configManager;
-    private final BukkitAudiences audiences;
     private final MiniMessage msg;
 
     public MessageManager(JoinProtection plugin) {
         this.configManager = plugin.configManager();
-        this.audiences = plugin.adventure();
         this.msg = MiniMessage.miniMessage();
     }
 
     private TagResolver getPrefixPlaceholder() {
         return Placeholder.parsed("prefix", configManager.get().messages.prefix);
+    }
+
+    /** Parses a MiniMessage string with the prefix placeholder and the given resolvers. */
+    public Component parse(String message, TagResolver... tagResolvers) {
+        return msg.deserialize(message, getPrefixPlaceholder(), TagResolver.resolver(tagResolvers));
     }
 
     public void sendMessage(CommandSender sender, String message) {
@@ -35,7 +37,7 @@ public class MessageManager {
     public void sendMessage(CommandSender sender, String message, TagResolver... tagResolvers) {
         if (message.isBlank()) return;
 
-        audiences.sender(sender).sendMessage(msg.deserialize(
+        sender.sendMessage(msg.deserialize(
                 message,
                 getPrefixPlaceholder(), TagResolver.resolver(tagResolvers)
         ));
@@ -44,7 +46,7 @@ public class MessageManager {
     public void sendActionbar(Player player, String message, TagResolver... tagResolvers) {
         if (message.isBlank()) return;
 
-        audiences.player(player).sendActionBar(msg.deserialize(
+        player.sendActionBar(msg.deserialize(
                 message,
                 getPrefixPlaceholder(), TagResolver.resolver(tagResolvers)
         ));
@@ -57,7 +59,7 @@ public class MessageManager {
     public void sendTitle(Player player, String message, TagResolver... tagResolvers) {
         if (message.isBlank()) return;
 
-        audiences.player(player).showTitle(Title.title(
+        player.showTitle(Title.title(
                 msg.deserialize(message, getPrefixPlaceholder(), TagResolver.resolver(tagResolvers)),
                 Component.empty(),
                 getTitleTimes()
@@ -67,7 +69,7 @@ public class MessageManager {
     public void sendSubTitle(Player player, String message, TagResolver... tagResolvers) {
         if (message.isBlank()) return;
 
-        audiences.player(player).showTitle(Title.title(
+        player.showTitle(Title.title(
                 Component.empty(),
                 msg.deserialize(message, getPrefixPlaceholder(), TagResolver.resolver(tagResolvers)),
                 getTitleTimes()

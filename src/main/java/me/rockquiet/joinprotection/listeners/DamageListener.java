@@ -40,7 +40,7 @@ public class DamageListener implements Listener {
             messageManager.sendMessage(attacker, config.messages.cannotHurt, Placeholder.unparsed("player", protectedPlayer.getName()));
 
             if (config.sound.enabled) {
-                plugin.adventure().player(attacker).playSound(config.sound.toSound(), protectedPlayer);
+                attacker.playSound(config.sound.toSound(), protectedPlayer);
             }
         }
 

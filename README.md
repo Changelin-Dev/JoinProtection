@@ -1,15 +1,18 @@
 <div align="center">
 
-[![GitHub release](https://img.shields.io/github/v/release/<your-github-username>/JoinProtection?style=for-the-badge&labelColor=29355F&color=009B98)](https://github.com/<your-github-username>/JoinProtection/releases)
-![Minecraft Versions](https://img.shields.io/badge/minecraft-26.2-009B98?style=for-the-badge&logoColor=blue&labelColor=29355F)
-![Java](https://img.shields.io/badge/java-25+-009B98?style=for-the-badge&logoColor=blue&labelColor=29355F)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/joinprotection?style=flat-square&logo=modrinth&label=Downloads&labelColor=29355F&color=009B98)](https://modrinth.com/plugin/joinprotection)
+[![Spigot Downloads](https://img.shields.io/spiget/downloads/113320?style=flat-square&label=Downloads&logo=image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAD1BMVEVHcEwAAAD/0ADi6D86RuhWkE5HAAAAAXRSTlMAQObYZgAAAFBJREFUeJxljdERgDAIQ8OdAxicgHQCZQH3n0pqrT99P7y7QADAYkfHiIHFJ4yRwDWlDaHy7IPeMupOUkvVFiu5XL3hyLBXjIT/nfPLdq/yAL5yBqT7qDihAAAAAElFTkSuQmCC&labelColor=29355F&color=009B98)](https://www.spigotmc.org/resources/113320)
+[![Hangar Downloads](https://img.shields.io/hangar/dt/joinprotection?style=flat-square&logo=image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAgBAMAAAAVss41AAAAJFBMVEVHcEz///////////////////////////////////////////8Uel1nAAAAC3RSTlMAH47fTa3EafI0C3ZKri0AAADwSURBVHicTZGvC8JQEMdPDeKSYBEsEwSFFbGJZcVkMRiEV7S6IgiCWNS6ZlBhxWZ3/ti8f87bfbfplePDvXff7/s+Iqlyr0p5FQy/3JwuzBw2s9GAk5qAaozqK3mAaKkL09FcR3XAE9cc0ELB8hVC6KfX4qtSCdQ+6LCB9TWYGyndt7LVzVbufQ7Pk8xJW9S9qEqwPORQ7Nop1Tk2zGNS8VfALWld0N3hk7QdTr7NM1DyQA9HT5qEHuZTmTLPaKvkzchaCQUgW0wOx3jD22goVypCwc2DFvVRlnWhIzk08uSttfj8/QMd/c3fJ9HNRv8CUjKn1XnSu4wAAAAASUVORK5CYII=&label=Downloads&labelColor=29355F&color=009B98)](https://hangar.papermc.io/rockquiet/JoinProtection)
+[![GitHub Downloads](https://img.shields.io/github/downloads/rockquiet/joinprotection/total?style=flat-square&label=Downloads&logo=github&labelColor=29355F&color=009B98)](https://github.com/rockquiet/JoinProtection/releases)
+
+[![GitHub release](https://img.shields.io/github/v/release/rockquiet/joinprotection?style=for-the-badge&labelColor=29355F&color=009B98)](https://github.com/rockquiet/JoinProtection/releases)
+![Minecraft Versions](https://img.shields.io/badge/minecraft-1.17.1_--_1.20.4-009B98?style=for-the-badge&logoColor=blue&labelColor=29355F)
+![Java](https://img.shields.io/badge/java-17+-009B98?style=for-the-badge&logoColor=blue&labelColor=29355F)
 
 # JoinProtection
 
 A plugin that protects players from mobs and damage for a set period of time after they join\
 ...with many configurable options.
-
-*Fork of [rockquiet/JoinProtection](https://github.com/rockquiet/JoinProtection) for Paper 26.2.*
 
 </div>
 
@@ -17,9 +20,6 @@ A plugin that protects players from mobs and damage for a set period of time aft
 
 - After joining the server the player is invincible for X seconds
     - Protection time can be extended via permission
-- **Bossbar showing the remaining protection time**
-- **Chat message at the start of the protection** (explains that attacking a player cancels it)
-- **Invisibility during the protection**
 - Toggle if entities target players with active join protection
 - Disable damage...
     - ...by entities
@@ -27,7 +27,7 @@ A plugin that protects players from mobs and damage for a set period of time aft
     - ...by anything else (fall damage, etc.)
 - Prevent the player from dropping/picking up items
 - Cancel the join protection if the player...
-    - ...attacks an entity (melee or projectile)
+    - ...attacks an entity
     - ...moves X blocks
     - ...breaks/places blocks
 - Particles aura during active join protection
@@ -37,36 +37,6 @@ A plugin that protects players from mobs and damage for a set period of time aft
   and [MiniPlaceholders](https://modrinth.com/plugin/miniplaceholders) support
 - [LuckPerms Context](https://luckperms.net/wiki/Context) support
 - Everything can be edited, bypassed with permissions, or completely disabled
-
-## Changelog
-
-### v2.0.0
-
-#### ✨ Nouveautés
-
-* Bossbar de protection : le temps restant avant la fin de la protection s'affiche en haut de l'écran et se vide au fil des secondes. Elle disparaît à la fin ou à l'annulation de la protection. Titre, couleur et style configurables dans `boss-bar`.
-* Message de début de protection dans le tchat : le joueur est prévenu qu'il est protégé et que frapper un autre joueur lui fait perdre sa protection. Modifiable dans `messages.protection-start`.
-* Invisibilité pendant la protection : l'effet est appliqué sans particules ni icône, et retiré à la fin, à l'annulation, à la mort, à la déconnexion et à l'arrêt du plugin. L'objet tenu en main reste visible. Désactivable via `invisibility.enabled`.
-
-#### 🔧 Améliorations
-
-* Compatibilité Paper 26.2 (Java 25, `api-version: '26.2'`).
-* Le plugin utilise désormais Adventure et MiniMessage de Paper, sans les embarquer. Spigot n'est plus supporté.
-* Les projectiles (flèches, tridents, boules de neige, etc.) lancés par un joueur protégé font maintenant aussi perdre sa protection.
-* Les vérifications de mise à jour sont désactivées par défaut.
-* Les principaux messages sont maintenant en français par défaut.
-
-#### 🐛 Corrections
-
-* Fix : la bossbar et l'invisibilité ne restent plus actives après une annulation de protection, une mort, une déconnexion ou un rechargement du plugin.
-
-#### ⚠️ Mise à jour depuis une 1.x
-
-Les nouvelles options sont ajoutées automatiquement dans le `config.yml`. La section `messages` est réinitialisée par la migration et doit être reconfigurée.
-
-#### 📦 Installation
-
-Téléchargez `JoinProtection.jar` ci-dessous et placez-le dans le dossier `plugins/` de votre serveur Paper 26.2.
 
 ## Commands & Permissions
 
@@ -101,12 +71,14 @@ More information on how it works is available on the [LuckPerms Wiki](https://lu
 
 ## Download
 
-Plugin jars are available in the [GitHub releases](https://github.com/<your-github-username>/JoinProtection/releases) section.
+Plugin jars are available in the [GitHub releases](https://github.com/rockquiet/JoinProtection/releases) section,
+on [Modrinth](https://modrinth.com/plugin/joinprotection), [Spigot](https://www.spigotmc.org/resources/113320)
+and [Hangar](https://hangar.papermc.io/rockquiet/JoinProtection).
 
-## Credits
-
-- Original plugin by [rockquiet](https://github.com/rockquiet/JoinProtection), released under the MIT License.
-- The v2.0.0 additions of this fork (bossbar, start message, invisibility, projectile attack cancel and the Paper 26.2 port) were partly coded with the help of AI (Claude, by Anthropic).
+[<img alt="github" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/github_vector.svg">](https://github.com/rockquiet/JoinProtection/releases)
+[<img alt="modrinth" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_vector.svg">](https://modrinth.com/plugin/joinprotection)
+[<img alt="spigot" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/spigot_vector.svg">](https://www.spigotmc.org/resources/113320)
+[<img alt="hangar" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/hangar_vector.svg">](https://hangar.papermc.io/rockquiet/JoinProtection)
 
 ## Metrics
 

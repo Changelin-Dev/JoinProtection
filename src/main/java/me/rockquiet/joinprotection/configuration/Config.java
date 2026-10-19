@@ -20,6 +20,10 @@ public final class Config {
 
     public PluginSection plugin = new PluginSection();
     public DisplaySection display = new DisplaySection();
+    @Comment("bossbar showing the remaining protection time")
+    public BossBarSection bossBar = new BossBarSection();
+    @Comment("makes the player invisible while protected")
+    public InvisibilitySection invisibility = new InvisibilitySection();
     @Comment("cancel active protection")
     public CancelSection cancel = new CancelSection();
     @Comment("when the player is...")
@@ -40,7 +44,7 @@ public final class Config {
     public static class PluginSection {
 
         @Comment("if the plugin should search for updates on server start")
-        public boolean updateChecks = true;
+        public boolean updateChecks = false;
 
         @Comment("""
                 a list of worlds where the plugin should or should not work
@@ -89,6 +93,32 @@ public final class Config {
                 );
             }
         }
+    }
+
+    @Configuration
+    public static class BossBarSection {
+
+        public boolean enabled = true;
+
+        @Comment("""
+                bossbar title. placeholders: <type>, <time> (formatted, e.g. 29m 45s), <seconds> (raw)""")
+        public String title = "<type> <dark_gray><b>»</b> <white>Protection restante : <yellow><time>";
+
+        @Comment("PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE")
+        public String color = "GREEN";
+
+        @Comment("PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20")
+        public String overlay = "PROGRESS";
+    }
+
+    @Configuration
+    public static class InvisibilitySection {
+
+        @Comment("""
+                gives the INVISIBILITY effect (no particles, no icon) during the protection
+                the effect is removed when the protection ends or is cancelled
+                note: vanilla invisibility still shows the item held in hand""")
+        public boolean enabled = true;
     }
 
     @Configuration
@@ -214,13 +244,18 @@ public final class Config {
         public String protect = "<prefix> <yellow><player> <green>is now protected for <yellow><time><green>s.";
         public String cancel = "<prefix> <green>The protection of <yellow><player></yellow> is now cancelled.";
         public String reload = "<prefix> <green>Configuration reloaded successfully.";
-        public String cannotHurt = "<prefix> <gray>You cannot hurt <white><player> <gray>while they have active protection.";
+        public String cannotHurt = "<prefix> <gray>Tu ne peux pas frapper <white><player> <gray>: il est protégé.";
         @Comment("Used in protection info display")
         public TypeSection type = new TypeSection();
-        public String timeRemaining = "<type> <dark_gray><b>»</b> <white><time><gray>s";
-        public String protectionEnded = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Elapsed!</gradient>";
-        public String protectionDeactivated = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Disabled!</gradient>";
-        public String protectionDeactivatedAttack = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Disabled because of your attack!</gradient>";
+        @Comment("""
+                sent in chat when a protection starts. placeholders: <type>, <time> (formatted), <seconds>
+                use <newline> for several lines, \"\" to disable""")
+        public String protectionStart = "<prefix> <green>Tu es <b>protégé</b> et <b>invisible</b> pendant <yellow><time></yellow>.<newline>"
+                + "<prefix> <red>Ne frappe aucun joueur : <b>si tu attaques, tu perds ta protection !</b>";
+        public String timeRemaining = "<type> <dark_gray><b>»</b> <white><seconds><gray>s";
+        public String protectionEnded = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Terminée !</gradient>";
+        public String protectionDeactivated = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Désactivée !</gradient>";
+        public String protectionDeactivatedAttack = "<type> <dark_gray><b>»</b> <gradient:#e64553:#d20f39>Désactivée à cause de ton attaque !</gradient>";
 
         @Configuration
         public static class TypeSection {

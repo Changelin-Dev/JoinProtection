@@ -3,7 +3,9 @@ package me.rockquiet.joinprotection;
 import me.rockquiet.joinprotection.configuration.Config;
 import me.rockquiet.joinprotection.protection.ProtectionInfo;
 import me.rockquiet.joinprotection.protection.ProtectionType;
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -13,6 +15,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ProtectionHandler implements Listener {
 
     private final Map<UUID, ProtectionInfo> invinciblePlayers = new ConcurrentHashMap<>();
+    private final Map<UUID, BossBar> bossBars = new ConcurrentHashMap<>();
 
     private final JoinProtection plugin;
     private final MessageManager messageManager;
@@ -68,7 +73,13 @@ public class ProtectionHandler implements Listener {
         invinciblePlayers.put(uuid, new ProtectionInfo(player.getLocation(), type));
 
         final Config config = plugin.config();
-        final AtomicInteger timeRemaining = new AtomicInteger(finalProtectionTime);
+        final int totalTime = finalProtectionTime;
+
+        applyInvisibility(player, totalTime);
+        sendStartMessage(player, type, totalTime);
+        final BossBar bossBar = createBossBar(player, type, totalTime);
+
+        final AtomicInteger timeRemaining = new AtomicInteger(totalTime);
         plugin.getScheduler().runTimerOnEntity(player, task -> {
             if (!hasProtection(uuid)) {
                 task.cancel();
@@ -76,19 +87,129 @@ public class ProtectionHandler implements Listener {
             }
 
             final int current = timeRemaining.getAndDecrement();
-            messageManager.sendProtectionInfo(player, config.messages.timeRemaining,
-                    type.getPlaceholder(config),
-                    Placeholder.unparsed("time", String.valueOf(current))
-            );
 
-            if (current == 0) {
-                invinciblePlayers.remove(uuid);
+            if (current > 0) {
+                updateBossBar(bossBar, type, current, totalTime);
+
+                // the bossbar replaces the action bar countdown
+                if (bossBar == null) {
+                    messageManager.sendProtectionInfo(player, config.messages.timeRemaining,
+                            type.getPlaceholder(config),
+                            Placeholder.unparsed("time", formatTime(current)),
+                            Placeholder.unparsed("seconds", String.valueOf(current))
+                    );
+                }
+            }
+
+            if (current <= 0) {
+                removeProtection(player);
                 messageManager.sendProtectionInfo(player, config.messages.protectionEnded, type.getPlaceholder(config));
                 task.cancel();
             }
         }, 0, 20);
 
         spawnParticles(player);
+    }
+
+    // ---------------------------------------------------------------- bossbar / invisibility / messages
+
+    private static String formatTime(int totalSeconds) {
+        final int hours = totalSeconds / 3600;
+        final int minutes = (totalSeconds % 3600) / 60;
+        final int seconds = totalSeconds % 60;
+
+        if (hours > 0) return String.format("%dh %02dm %02ds", hours, minutes, seconds);
+        if (minutes > 0) return String.format("%dm %02ds", minutes, seconds);
+        return seconds + "s";
+    }
+
+    private TagResolver[] timeResolvers(ProtectionType type, int remaining) {
+        return new TagResolver[]{
+                type.getPlaceholder(plugin.config()),
+                Placeholder.unparsed("time", formatTime(remaining)),
+                Placeholder.unparsed("seconds", String.valueOf(remaining))
+        };
+    }
+
+    private void sendStartMessage(Player player, ProtectionType type, int totalTime) {
+        final String message = plugin.config().messages.protectionStart;
+        if (message == null || message.isBlank()) return;
+
+        messageManager.sendMessage(player, message, timeResolvers(type, totalTime));
+    }
+
+    private BossBar createBossBar(Player player, ProtectionType type, int totalTime) {
+        final Config.BossBarSection section = plugin.config().bossBar;
+        if (!section.enabled) return null;
+
+        BossBar.Color color;
+        try {
+            color = BossBar.Color.valueOf(section.color.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            color = BossBar.Color.GREEN;
+        }
+
+        BossBar.Overlay overlay;
+        try {
+            overlay = BossBar.Overlay.valueOf(section.overlay.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            overlay = BossBar.Overlay.PROGRESS;
+        }
+
+        final BossBar bossBar = BossBar.bossBar(
+                messageManager.parse(section.title, timeResolvers(type, totalTime)),
+                1.0f,
+                color,
+                overlay
+        );
+        bossBars.put(player.getUniqueId(), bossBar);
+        player.showBossBar(bossBar);
+        return bossBar;
+    }
+
+    private void updateBossBar(BossBar bossBar, ProtectionType type, int remaining, int totalTime) {
+        if (bossBar == null) return;
+
+        bossBar.name(messageManager.parse(plugin.config().bossBar.title, timeResolvers(type, remaining)));
+        bossBar.progress(Math.max(0.0f, Math.min(1.0f, remaining / (float) totalTime)));
+    }
+
+    private void applyInvisibility(Player player, int totalTime) {
+        if (!plugin.config().invisibility.enabled) return;
+
+        // ambient=false, particles=false, icon=false -> fully discreet effect
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, (totalTime + 2) * 20, 0, false, false, false));
+    }
+
+    /**
+     * Single exit point: forgets the protection, hides the bossbar and removes invisibility.
+     */
+    private void removeProtection(Player player) {
+        final UUID uuid = player.getUniqueId();
+        invinciblePlayers.remove(uuid);
+
+        final BossBar bossBar = bossBars.remove(uuid);
+        if (bossBar != null) {
+            player.hideBossBar(bossBar);
+        }
+
+        if (plugin.config().invisibility.enabled) {
+            player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        }
+    }
+
+    /**
+     * Called on plugin disable: nobody should stay invisible / keep a bossbar.
+     */
+    public void shutdown() {
+        for (UUID uuid : List.copyOf(invinciblePlayers.keySet())) {
+            final Player player = plugin.getServer().getPlayer(uuid);
+            if (player != null) {
+                removeProtection(player);
+            }
+        }
+        invinciblePlayers.clear();
+        bossBars.clear();
     }
 
     public final void calculateParticleCoordinates() {
@@ -184,7 +305,7 @@ public class ProtectionHandler implements Listener {
     public void cancelProtection(Player player, String messageOnCancel) {
         messageManager.sendProtectionInfo(player, messageOnCancel, getProtectionInfo(player.getUniqueId()).type().getPlaceholder(plugin.config()));
 
-        invinciblePlayers.remove(player.getUniqueId());
+        removeProtection(player);
     }
 
     public boolean isEventCancelled(UUID playerUUID, boolean cancelled) {
@@ -194,11 +315,11 @@ public class ProtectionHandler implements Listener {
     // clear map
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
-        invinciblePlayers.remove(event.getPlayer().getUniqueId());
+        removeProtection(event.getPlayer());
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
-        invinciblePlayers.remove(event.getEntity().getUniqueId());
+        removeProtection(event.getEntity());
     }
 }

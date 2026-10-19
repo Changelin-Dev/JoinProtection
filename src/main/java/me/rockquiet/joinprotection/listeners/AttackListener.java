@@ -5,6 +5,7 @@ import me.rockquiet.joinprotection.configuration.Config;
 import me.rockquiet.joinprotection.configuration.ConfigManager;
 import me.rockquiet.joinprotection.configuration.Permissions;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -21,7 +22,15 @@ public class AttackListener implements Listener {
 
     @EventHandler
     public void onAttack(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player player)) return;
+        // melee attack, or a projectile (arrow, trident, snowball...) shot by a player
+        final Player player;
+        if (event.getDamager() instanceof Player damager) {
+            player = damager;
+        } else if (event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter) {
+            player = shooter;
+        } else {
+            return;
+        }
 
         if (event.getEntity().equals(player)) return;
 
